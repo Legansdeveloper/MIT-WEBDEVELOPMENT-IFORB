@@ -1,0 +1,190 @@
+{% load static %}
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07141a">
+  <title>Deteksi Chat Penipuan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'deteksi/styles.css' %}?v=10">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="topline">
+      <a class="brand" href="{% url 'home' %}" aria-label="Deteksi chat penipuan, halaman utama">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>Ruang Aman<span class="brand-dot">.</span></span>
+      </a>
+      <span class="model-status"><span class="status-dot"></span> PEMINDAI PESAN SIAP</span>
+    </header>
+
+    <section class="workspace" aria-label="Pemeriksaan pesan dan Live2D">
+      <aside class="analysis-side analysis-left" aria-label="Hasil klasifikasi">
+        {% if error %}
+        <section class="feedback feedback-error" role="alert">
+          <span class="feedback-symbol" aria-hidden="true">!</span>
+          <div><h2>Belum bisa memeriksa</h2><p>{{ error }}</p></div>
+        </section>
+        {% endif %}
+        {% if result %}
+        <section class="feedback {% if result.label_id == 1 %}feedback-scam{% else %}feedback-normal{% endif %}" aria-live="polite">
+          <span class="feedback-symbol" aria-hidden="true">{% if result.label_id == 1 %}!{% else %}✓{% endif %}</span>
+          <div class="result-copy">
+            <p class="result-kicker">HASIL PEMERIKSAAN</p>
+            <h2>{% if result.label_id == 1 %}Terdeteksi sebagai penipuan{% else %}Terklasifikasi sebagai normal{% endif %}</h2>
+            <p>{% if result.label_id == 1 %}Waspadai permintaan uang, tautan, data pribadi, atau kode OTP.{% else %}Tetap periksa konteks dan identitas pengirim secara mandiri.{% endif %}</p>
+            <div class="confidence"><span>SKOR MODEL</span><strong>{{ result.confidence_percent|floatformat:1 }}%</strong></div>
+          </div>
+        </section>
+        <p class="disclaimer">Skor ini petunjuk awal, bukan jaminan keamanan.</p>
+        {% if result.url_groq_explanation %}
+        <section class="feedback feedback-normal groq-feedback" aria-live="polite">
+          <div class="result-copy">
+            <p class="result-kicker">PENJELASAN TAUTAN · GROQ</p>
+            <div class="groq-explanation">{{ result.url_groq_explanation|linebreaksbr }}</div>
+          </div>
+        </section>
+        {% elif url_groq_error %}
+        <section class="feedback feedback-error" role="status">
+          <div><h2>Penjelasan tautan tidak tersedia</h2><p>{{ url_groq_error }}</p></div>
+        </section>
+        {% endif %}
+        {% endif %}
+      </aside>
+
+      <aside class="character-panel" aria-labelledby="character-title">
+        <div class="character-panel-top">
+          <span class="panel-label"><span class="status-dot"></span> PENDAMPING DIGITAL</span>
+          <div class="character-actions">
+            <span class="panel-code">LIVE2D</span>
+            <button class="live2d-change-button" id="live2d-change-button" type="button">Ganti karakter</button>
+          </div>
+        </div>
+        <div class="character-stage" id="live2d-stage" aria-label="Area karakter Live2D">
+          <span class="stage-corner stage-corner-tl" aria-hidden="true"></span>
+          <span class="stage-corner stage-corner-tr" aria-hidden="true"></span>
+          <span class="stage-corner stage-corner-bl" aria-hidden="true"></span>
+          <span class="stage-corner stage-corner-br" aria-hidden="true"></span>
+          <div class="live2d-empty" id="live2d-empty">
+            <span class="live2d-mark" aria-hidden="true">◈</span>
+            <p class="live2d-empty-title">Tambahkan karakter Live2D</p>
+            <p class="live2d-empty-help">Pilih ZIP model atau seret ke area ini.<br>ZIP perlu berisi model3.json, file .moc3, dan tekstur.</p>
+            <input id="live2d-file" type="file" accept=".zip,application/zip" hidden>
+            <button class="live2d-upload-button" id="live2d-upload-button" type="button">Pilih file ZIP</button>
+            <p class="live2d-status" id="live2d-status" role="status" aria-live="polite"></p>
+          </div>
+          <div class="live2d-controls is-hidden" id="live2d-controls" aria-label="Kontrol zoom karakter">
+            <button id="live2d-zoom-out" type="button" aria-label="Perkecil karakter" disabled>−</button>
+            <input id="live2d-zoom" type="range" min="50" max="200" step="5" value="100" aria-label="Zoom karakter" disabled>
+            <output id="live2d-zoom-value" for="live2d-zoom">100%</output>
+            <button id="live2d-zoom-in" type="button" aria-label="Perbesar karakter" disabled>+</button>
+            <button id="live2d-zoom-reset" class="zoom-reset" type="button" disabled>Reset</button>
+          </div>
+        </div>
+        <div class="character-panel-bottom">
+          <span class="audio-indicator" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+          <span>AI COMPANION</span>
+          {% if result %}
+          <button class="read-analysis-button" id="read-analysis-button" data-speech-url="{% url 'speak_analysis' %}" type="button" aria-pressed="false">🔊 ElevenLabs · TTS</button>
+          <span class="speech-status" id="speech-status" role="status" aria-live="polite"></span>
+          {% endif %}
+        </div>
+      </aside>
+
+      <aside class="analysis-side analysis-right" aria-label="Analisis tautan dan penjelasan">
+        {% if result and result.heuristic_check.status != "no_urls" %}
+        <section class="feedback {% if result.heuristic_check.status == 'suspicious' %}feedback-scam{% else %}feedback-normal{% endif %}" aria-live="polite">
+          <span class="feedback-symbol" aria-hidden="true">{% if result.heuristic_check.status == "suspicious" %}!{% else %}✓{% endif %}</span>
+          <div class="result-copy">
+            <p class="result-kicker">ANALISIS TAUTAN</p>
+            {% if result.heuristic_check.status == "suspicious" %}
+            <h2>Pola mencurigakan</h2>
+            {% for match in result.heuristic_check.matches %}<p class="url-match">{{ match.url }}<br>{{ match.reason }}</p>{% endfor %}
+            {% else %}
+            <h2>Tautan tampak normal</h2>
+            <p>{{ result.heuristic_check.urls_checked }} tautan diperiksa.</p>
+            {% endif %}
+          </div>
+        </section>
+        {% endif %}
+        {% if result.groq_explanation %}
+        <section class="feedback feedback-normal groq-feedback" aria-live="polite">
+          <div class="result-copy">
+            <p class="result-kicker">PENJELASAN INDO BERT · GROQ</p>
+            <p class="groq-model-score">Label: <strong>{{ result.label }}</strong></p>
+            <div class="groq-explanation">{{ result.groq_explanation|linebreaksbr }}</div>
+          </div>
+        </section>
+        {% elif groq_error %}
+        <section class="feedback feedback-error" role="status">
+          <div><h2>Analisis Groq tidak tersedia</h2><p>{{ groq_error }}</p></div>
+        </section>
+        {% endif %}
+      </aside>
+
+      <form class="check-form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="field-heading">
+          <label for="chat_text">Isi pesan</label>
+          <span>INDOBERT · ANALISIS TAUTAN</span>
+        </div>
+        <textarea id="chat_text" name="chat_text" rows="3" placeholder="Tempel pesan yang ingin diperiksa...">{% if not pdf_name %}{{ chat_text }}{% endif %}</textarea>
+        <div class="upload-field">
+          <div class="upload-heading"><span class="upload-icon" aria-hidden="true">↑</span><div><label for="pdf_file">Unggah dokumen PDF</label><span class="upload-subtitle">Pilih file dari perangkat Anda</span></div></div>
+          <div class="upload-dropzone" id="pdf_dropzone">
+            <input id="pdf_file" name="pdf_file" type="file" accept=".pdf,application/pdf" aria-describedby="pdf_upload_note">
+            <span class="upload-limit">PDF · Maksimal 20 MB</span>
+          </div>
+          <span class="upload-note" id="pdf_upload_note">PDF hasil scan tanpa teks belum bisa dibaca.</span>
+        </div>
+        {% if pdf_name %}<p class="uploaded-file">Dokumen yang diperiksa: <strong>{{ pdf_name }}</strong></p>{% endif %}
+        <div class="form-footer">
+          <p>Jangan masukkan OTP atau kata sandi.</p>
+          <div class="button-row">
+            <button type="submit"><span>Periksa pesan</span><span class="button-arrow" aria-hidden="true">→</span></button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <footer class="page-footer">
+      <span>KLASIFIKASI LOKAL · PENJELASAN OLEH GROQ</span>
+      <span>INDOBERT + GROQ</span>
+    </footer>
+  </main>
+  <script>
+    const pdfInput = document.getElementById("pdf_file");
+    const pdfDropzone = document.getElementById("pdf_dropzone");
+    pdfInput.addEventListener("change", () => {
+      const file = pdfInput.files[0];
+      pdfDropzone.classList.toggle("has-file", Boolean(file));
+    });
+    ["dragenter", "dragover"].forEach((eventName) => {
+      pdfDropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        pdfDropzone.classList.add("is-dragging");
+      });
+    });
+    ["dragleave", "drop"].forEach((eventName) => {
+      pdfDropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        pdfDropzone.classList.remove("is-dragging");
+      });
+    });
+    pdfDropzone.addEventListener("drop", (event) => {
+      if (event.dataTransfer.files.length) {
+        pdfInput.files = event.dataTransfer.files;
+        pdfInput.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
+  <script src="{% static 'deteksi/live2d.js' %}?v=7"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# local database
+*.sqlite3
+db.sqlite3
+
+# model artifacts / training outputs
+model_deteksi_penipuan/
+hasil_training_indobert/
+hasil_training_lanjutan/
+*.safetensors
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.h5
+*.onnx
+
+# misc generated files
+.DS_Store
+*.log
+
+# editor/project files
+.vscode/
+.idea/
+
+.agents/
