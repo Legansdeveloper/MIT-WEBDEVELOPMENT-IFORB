@@ -1,5 +1,6 @@
 import os
 from types import SimpleNamespace
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 from unittest.mock import patch
 
@@ -122,25 +123,25 @@ class URLOnlyDetectionTests(SimpleTestCase):
         url_explain.side_effect = lambda *args: call_order.append("groq_url") or "Penjelasan risiko tautan."
         explain.side_effect = lambda *args: call_order.append("groq_message") or "Penjelasan IndoBERT."
 
-        response = self.client.post("/", {"chat_text": "https://bit.ly/claim-reward"})
+        response = self.client.post(
+            "/api/analyze/",
+            {"chat_text": "https://bit.ly/claim-reward"},
+        )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "HASIL PEMERIKSAAN")
-        self.assertContains(response, "ATURAN HEURISTIK TAUTAN")
-        self.assertContains(response, "Shortened URL.")
-        self.assertContains(response, "PENJELASAN TAUTAN · GROQ")
-        self.assertContains(response, "Penjelasan risiko tautan.")
-        self.assertContains(response, "PENJELASAN INDO BERT · GROQ")
-        self.assertContains(response, "Penjelasan IndoBERT.")
-        self.assertNotContains(response, "Google Safe Browsing")
-        response_html = response.content.decode()
-        self.assertLess(
-            response_html.index("ATURAN HEURISTIK TAUTAN"),
-            response_html.index("PENJELASAN TAUTAN · GROQ"),
+        response_data = response.json()
+        self.assertEqual(response_data["result"]["heuristic_check"]["status"], "suspicious")
+        self.assertEqual(
+            response_data["result"]["heuristic_check"]["matches"][0]["reason"],
+            "Shortened URL.",
         )
-        self.assertLess(
-            response_html.index("PENJELASAN TAUTAN · GROQ"),
-            response_html.index("PENJELASAN INDO BERT · GROQ"),
+        self.assertEqual(
+            response_data["result"]["url_groq_explanation"],
+            "Penjelasan risiko tautan.",
+        )
+        self.assertEqual(
+            response_data["result"]["groq_explanation"],
+            "Penjelasan IndoBERT.",
         )
         self.assertEqual(call_order, ["safe_browsing", "heuristics", "groq_url", "groq_message"])
         url_analysis = url_explain.call_args.args[1]
@@ -149,3 +150,43 @@ class URLOnlyDetectionTests(SimpleTestCase):
         predict.assert_called_once()
         url_explain.assert_called_once()
         explain.assert_called_once()
+
+    def test_homepage_serves_the_react_mount_point(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="root"')
+        self.assertContains(response, "deteksi/frontend/assets/app.js")
+
+    def test_analyze_endpoint_rejects_empty_text(self):
+        response = self.client.post("/api/analyze/", {"chat_text": "   "})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Masukkan isi chat", response.json()["error"])
+
+    @patch(
+        "deteksi.views.analyze_chat_text",
+        return_value=({"label_id": 0, "label": "normal", "confidence_percent": 90}, {}),
+    )
+    @patch("deteksi.views.extract_pdf_text", return_value="Isi chat dari PDF")
+    def test_analyze_endpoint_accepts_pdf_upload(self, extract_pdf, analyze):
+        uploaded_pdf = SimpleUploadedFile(
+            "percakapan.pdf",
+            b"fake pdf content",
+            content_type="application/pdf",
+        )
+
+        response = self.client.post("/api/analyze/", {"pdf_file": uploaded_pdf})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["pdf_name"], "percakapan.pdf")
+        self.assertEqual(response.json()["chat_text"], "Isi chat dari PDF")
+        extract_pdf.assert_called_once()
+        analyze.assert_called_once_with("Isi chat dari PDF")
+
+    def test_csrf_endpoint_returns_a_token(self):
+        response = self.client.get("/api/csrf/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["csrfToken"])
+        self.assertIn("csrftoken", response.cookies)

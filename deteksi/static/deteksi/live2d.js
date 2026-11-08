@@ -1,16 +1,7 @@
 (() => {
   const stage = document.getElementById("live2d-stage");
   const emptyState = document.getElementById("live2d-empty");
-  const fileInput = document.getElementById("live2d-file");
-  const uploadButton = document.getElementById("live2d-upload-button");
-  const changeButton = document.getElementById("live2d-change-button");
   const status = document.getElementById("live2d-status");
-  const zoomControls = document.getElementById("live2d-controls");
-  const zoomSlider = document.getElementById("live2d-zoom");
-  const zoomValue = document.getElementById("live2d-zoom-value");
-  const zoomOutButton = document.getElementById("live2d-zoom-out");
-  const zoomInButton = document.getElementById("live2d-zoom-in");
-  const zoomResetButton = document.getElementById("live2d-zoom-reset");
   const readAnalysisButton = document.getElementById("read-analysis-button");
   const speechStatus = document.getElementById("speech-status");
 
@@ -26,10 +17,31 @@
   let currentAudio = null;
   let currentAudioUrl = null;
   let speechAbortController = null;
-  const dbName = "ruang-aman-live2d";
-  const dbStore = "models";
-  const modelKey = "last-model";
+  let pendingReaction = true;
+  let lastReactionAt = 0;
 
+  function playReaction() {
+    if (!live2dModel || typeof live2dModel.motion !== "function") return;
+    const now = Date.now();
+    if (now - lastReactionAt < 700) return;
+    lastReactionAt = now;
+    const motionIndex = Math.floor(Math.random() * 26) + 1;
+    try {
+      live2dModel.motion("", motionIndex, 2)?.catch((error) => {
+        console.warn("Haru motion could not be played", error);
+      });
+    } catch (error) {
+      console.warn("Haru motion could not be played", error);
+    }
+  }
+
+  function onReaction() {
+    if (!live2dModel) pendingReaction = true;
+    playReaction();
+  }
+
+  window.addEventListener("cynthia:reaction", onReaction);
+  window.addEventListener("cynthia:tap", playReaction);
   function setStatus(message, isError = false) {
     status.textContent = message;
     status.classList.toggle("is-error", isError);
@@ -63,63 +75,17 @@
       resolution: Math.min(window.devicePixelRatio || 1, 2),
     });
     pixiApp.view.setAttribute("aria-label", "Karakter Live2D");
-    stage.insertBefore(pixiApp.view, emptyState);
-  }
-
-  function openModelDatabase() {
-    return new Promise((resolve, reject) => {
-      if (!("indexedDB" in window)) {
-        reject(new Error("Browser tidak mendukung penyimpanan model."));
-        return;
+    pixiApp.view.setAttribute("role", "button");
+    pixiApp.view.setAttribute("tabindex", "0");
+    pixiApp.view.setAttribute("title", "Klik karakter untuk menyapanya");
+    pixiApp.view.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        playReaction();
+        window.dispatchEvent(new CustomEvent("cynthia:tap"));
       }
-      const request = window.indexedDB.open(dbName, 1);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(dbStore)) db.createObjectStore(dbStore, { keyPath: "id" });
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
     });
-  }
-
-  async function storeModelFile(file) {
-    const db = await openModelDatabase();
-    try {
-      const transaction = db.transaction(dbStore, "readwrite");
-      transaction.objectStore(dbStore).put({
-        id: modelKey,
-        name: file.name,
-        type: file.type || "application/zip",
-        lastModified: file.lastModified || Date.now(),
-        blob: file,
-      });
-      await new Promise((resolve, reject) => {
-        transaction.oncomplete = resolve;
-        transaction.onerror = () => reject(transaction.error);
-        transaction.onabort = () => reject(transaction.error);
-      });
-    } finally {
-      db.close();
-    }
-  }
-
-  async function readStoredModel() {
-    const db = await openModelDatabase();
-    try {
-      const transaction = db.transaction(dbStore, "readonly");
-      const record = await new Promise((resolve, reject) => {
-        const request = transaction.objectStore(dbStore).get(modelKey);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-      if (!record?.blob) return null;
-      return new File([record.blob], record.name, {
-        type: record.type || "application/zip",
-        lastModified: record.lastModified || Date.now(),
-      });
-    } finally {
-      db.close();
-    }
+    stage.insertBefore(pixiApp.view, emptyState);
   }
 
   function positionModel() {
@@ -136,12 +102,9 @@
   }
 
   function applyZoom() {
-    const zoom = Number(zoomSlider.value) / 100;
-    zoomValue.value = `${zoomSlider.value}%`;
-    zoomValue.textContent = `${zoomSlider.value}%`;
     if (!live2dModel || !pixiApp || !modelNaturalSize) return;
 
-    const scale = modelFitScale * zoom;
+    const scale = modelFitScale * 2;
     const faceHeight = pixiApp.screen.height * 0.28;
     const facePositionInModel = 0.17;
     live2dModel.scale.set(scale);
@@ -149,12 +112,6 @@
       pixiApp.screen.width / 2,
       faceHeight + modelNaturalSize.height * scale * (0.5 - facePositionInModel),
     );
-  }
-
-  function adjustZoom(change) {
-    const current = Number(zoomSlider.value);
-    zoomSlider.value = String(Math.max(50, Math.min(200, current + change)));
-    applyZoom();
   }
 
   function setMouthOpen(value) {
@@ -188,9 +145,10 @@
 
   function setSpeechUi(speaking, message = "") {
     isSpeaking = speaking;
+    if (speaking) playReaction();
     readAnalysisButton.classList.toggle("is-speaking", speaking);
     readAnalysisButton.setAttribute("aria-pressed", String(speaking));
-    readAnalysisButton.textContent = speaking ? "Hentikan suara" : "🔊 ElevenLabs · TTS";
+    readAnalysisButton.setAttribute("aria-label", speaking ? "Hentikan bacaan" : "Bacakan hasil");
     speechStatus.textContent = message;
   }
 
@@ -243,19 +201,16 @@
     isSpeaking = false;
     readAnalysisButton.classList.remove("is-speaking");
     readAnalysisButton.setAttribute("aria-pressed", "false");
-    readAnalysisButton.textContent = "🔊 ElevenLabs · TTS";
+    readAnalysisButton.setAttribute("aria-label", "Bacakan hasil");
     speechStatus.textContent = message;
   }
 
   function getAnalysisText() {
-    return Array.from(document.querySelectorAll(".analysis-side .feedback"))
-      .map((card) => {
-        const copy = card.cloneNode(true);
-        copy.querySelectorAll(".feedback-symbol, .result-kicker, .confidence").forEach((element) => element.remove());
-        return copy.innerText.replace(/\s+/g, " ").trim();
-      })
-      .filter(Boolean)
-      .join(". ");
+    const results = document.getElementById("analysis-results");
+    if (!results) return "";
+    const spokenResults = results.cloneNode(true);
+    spokenResults.querySelectorAll("button").forEach((button) => button.remove());
+    return spokenResults.textContent.replace(/\s+/g, " ").trim();
   }
 
   async function speakAnalysis() {
@@ -278,7 +233,8 @@
       for (let index = 0; index < chunks.length; index += 1) {
         if (runId !== speechRunId) return;
         speechAbortController = new AbortController();
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value
+          || document.cookie.split("; ").find((cookie) => cookie.startsWith("csrftoken="))?.slice("csrftoken=".length);
         const response = await fetch(readAnalysisButton.dataset.speechUrl, {
           method: "POST",
           credentials: "same-origin",
@@ -329,7 +285,7 @@
     }
   }
 
-  async function loadModel(file, { persist = true } = {}) {
+  async function loadModel(file) {
     if (isLoading) return;
     if (!file || !file.name.toLowerCase().endsWith(".zip")) {
       setStatus("Pilih ZIP model Live2D.", true);
@@ -360,64 +316,55 @@
       }
       live2dModel = nextModel;
       pixiApp.stage.addChild(live2dModel);
-      zoomSlider.value = "100";
+      live2dModel.interactive = true;
+      live2dModel.on("pointertap", () => {
+        playReaction();
+        window.dispatchEvent(new CustomEvent("cynthia:tap"));
+      });
       positionModel();
-      [zoomSlider, zoomOutButton, zoomInButton, zoomResetButton].forEach((control) => { control.disabled = false; });
-      zoomControls.classList.remove("is-hidden");
-      if (persist) {
-        try {
-          await storeModelFile(file);
-        } catch (error) {
-          console.warn("Model Live2D tidak tersimpan untuk kunjungan berikutnya", error);
-        }
-      }
       emptyState.classList.add("is-hidden");
       setStatus("");
+      if (pendingReaction) {
+        playReaction();
+        pendingReaction = false;
+      }
     } catch (error) {
       console.error("Live2D model load failed", error);
-      setStatus("Model gagal dimuat. Pastikan ZIP berisi model3.json, .moc3, dan tekstur.", true);
+      setStatus("Karakter Haru gagal dimuat. Muat ulang halaman untuk mencoba kembali.", true);
     } finally {
       isLoading = false;
       emptyState.classList.remove("is-loading");
     }
   }
 
-  uploadButton.addEventListener("click", () => fileInput.click());
-  changeButton.addEventListener("click", () => fileInput.click());
-  zoomSlider.addEventListener("input", applyZoom);
-  zoomOutButton.addEventListener("click", () => adjustZoom(-10));
-  zoomInButton.addEventListener("click", () => adjustZoom(10));
-  zoomResetButton.addEventListener("click", () => {
-    zoomSlider.value = "100";
-    applyZoom();
-  });
-  readAnalysisButton?.addEventListener("click", speakAnalysis);
-  fileInput.addEventListener("change", () => {
-    const [file] = fileInput.files;
-    if (file) loadModel(file);
-    fileInput.value = "";
-  });
+  async function loadDefaultModel() {
+    const modelUrl = emptyState.dataset.defaultModelUrl;
+    if (!modelUrl) return;
 
-  ["dragenter", "dragover"].forEach((eventName) => {
-    stage.addEventListener(eventName, (event) => {
-      event.preventDefault();
-      stage.classList.add("is-dragging");
-    });
-  });
-  ["dragleave", "drop"].forEach((eventName) => {
-    stage.addEventListener(eventName, (event) => {
-      event.preventDefault();
-      stage.classList.remove("is-dragging");
-    });
-  });
-  stage.addEventListener("drop", (event) => {
-    const [file] = event.dataTransfer.files;
-    if (file) loadModel(file);
-  });
+    setStatus("Memuat karakter Haru…");
+    try {
+      const response = await fetch(modelUrl);
+      if (!response.ok) {
+        throw new Error(`Model Haru gagal dimuat (HTTP ${response.status}).`);
+      }
+      const modelBlob = await response.blob();
+      const modelFile = new File([modelBlob], "haru-live2d.zip", {
+        type: "application/zip",
+      });
+      loadModel(modelFile);
+    } catch (error) {
+      console.error("Default Live2D model load failed", error);
+      setStatus("Karakter Haru belum bisa dimuat. Periksa koneksi lalu muat ulang halaman.", true);
+    }
+  }
+
+  readAnalysisButton?.addEventListener("click", speakAnalysis);
 
   window.addEventListener("resize", positionModel);
+  const stageResizeObserver = new ResizeObserver(() => {
+    window.requestAnimationFrame(positionModel);
+  });
+  stageResizeObserver.observe(stage);
 
-  readStoredModel()
-    .then((file) => { if (file) loadModel(file, { persist: false }); })
-    .catch((error) => console.warn("Model Live2D tersimpan tidak dapat dibaca", error));
+  loadDefaultModel();
 })();

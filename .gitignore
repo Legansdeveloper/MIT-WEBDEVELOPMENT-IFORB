@@ -1,14 +1,19 @@
 .env
 .venv/
 venv/
+env/
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+frontend/node_modules/
+frontend/dist/
+deteksi/static/deteksi/frontend/
 
 # local database
 *.sqlite3
 db.sqlite3
+/staticfiles/
 
 # model artifacts / training outputs
 model_deteksi_penipuan/
@@ -31,3 +36,4 @@ hasil_training_lanjutan/
 .idea/
 
 .agents/
+.tsupgrader/

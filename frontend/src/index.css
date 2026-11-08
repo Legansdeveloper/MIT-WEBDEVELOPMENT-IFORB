@@ -1,0 +1,275 @@
+@import "tailwindcss";
+
+@theme {
+  --color-white: oklch(0.99 0.008 250);
+  --color-page: oklch(0.965 0.014 250);
+  --color-ink: oklch(0.22 0.035 264);
+  --color-muted: oklch(0.49 0.035 264);
+  --color-subtle: oklch(0.62 0.03 264);
+  --color-line: oklch(0.88 0.02 255);
+  --color-surface: oklch(0.99 0.008 250);
+  --color-surface-raised: oklch(1 0 0);
+  --color-stage: oklch(0.28 0.085 265);
+  --color-stage-light: oklch(0.4 0.12 270);
+  --color-brand: oklch(0.55 0.19 258);
+  --color-brand-soft: oklch(0.93 0.045 258);
+  --color-brand-ink: oklch(0.43 0.16 258);
+  --color-highlight: oklch(0.76 0.14 190);
+  --color-good: oklch(0.48 0.13 154);
+  --color-good-soft: oklch(0.94 0.045 154);
+  --color-risk: oklch(0.55 0.19 25);
+  --color-risk-soft: oklch(0.95 0.035 25);
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--color-page);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-white: oklch(0.24 0.012 255);
+  --color-page: oklch(0.19 0.012 255);
+  --color-ink: oklch(0.94 0.008 255);
+  --color-muted: oklch(0.73 0.014 255);
+  --color-subtle: oklch(0.59 0.014 255);
+  --color-line: oklch(0.35 0.014 255);
+  --color-surface: oklch(0.22 0.012 255);
+  --color-surface-raised: oklch(0.26 0.012 255);
+  --color-brand: oklch(0.73 0.11 218);
+  --color-brand-soft: oklch(0.31 0.045 235);
+  --color-brand-ink: oklch(0.82 0.08 218);
+  --color-good: oklch(0.75 0.1 155);
+  --color-good-soft: oklch(0.3 0.035 155);
+  --color-risk: oklch(0.73 0.13 28);
+  --color-risk-soft: oklch(0.3 0.045 28);
+  background: var(--color-page);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  color: var(--color-ink);
+  background: var(--color-page);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+}
+
+#live2d-stage canvas {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.character-stage {
+  isolation: isolate;
+}
+
+.character-stage::before,
+.character-stage::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0 -10% -24vh;
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  transition: opacity 650ms ease, transform 800ms ease;
+}
+
+.character-stage::before {
+  background: radial-gradient(ellipse 68% 57% at 50% 61%, oklch(0.74 0.04 225 / 14%), transparent 100%);
+}
+
+.character-stage::after {
+  background: radial-gradient(ellipse 68% 57% at 50% 61%, var(--scene-glow), transparent 100%);
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+:root[data-scene="safe"] .character-stage::after {
+  --scene-glow: oklch(0.76 0.13 150 / 24%);
+  opacity: 1;
+  transform: scale(1);
+}
+
+:root[data-scene="caution"] .character-stage::after {
+  --scene-glow: oklch(0.82 0.14 82 / 26%);
+  opacity: 1;
+  transform: scale(1);
+}
+
+:root[data-scene="danger"] .character-stage::after {
+  --scene-glow: oklch(0.65 0.16 35 / 25%);
+  opacity: 1;
+  transform: scale(1);
+}
+
+#live2d-empty.is-hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#live2d-empty.is-loading {
+  background: color-mix(in oklch, var(--color-page) 78%, transparent);
+}
+
+#live2d-status.is-error {
+  color: var(--color-risk);
+}
+
+#read-analysis-button.is-speaking {
+  border-color: oklch(0.85 0.08 190 / 75%);
+  background: oklch(0.93 0.045 190 / 55%);
+}
+
+.analysis-scroll {
+  scrollbar-color: var(--color-line) transparent;
+  scrollbar-width: thin;
+}
+
+.menu-toggle-lines {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 16px;
+}
+
+.menu-line {
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: top 220ms ease, transform 220ms ease, opacity 160ms ease;
+}
+
+.menu-line-top {
+  top: 2px;
+}
+
+.menu-line-middle {
+  top: 7px;
+}
+
+.menu-line-bottom {
+  top: 12px;
+}
+
+.menu-line-top.is-open {
+  top: 7px;
+  transform: rotate(45deg);
+}
+
+.menu-line-middle.is-open {
+  opacity: 0;
+  transform: scaleX(0.25);
+}
+
+.menu-line-bottom.is-open {
+  top: 7px;
+  transform: rotate(-45deg);
+}
+
+.settings-menu {
+  transform-origin: top right;
+  animation: menu-enter 180ms ease-out both;
+}
+
+.analysis-panel {
+  animation: panel-enter 240ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.character-greeting {
+  animation: greeting-enter 300ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+@keyframes menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes greeting-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 639px) {
+  .character-stage::before,
+  .character-stage::after {
+    inset-inline: -30%;
+    bottom: -20vh;
+  }
+
+  .character-stage::before {
+    background: radial-gradient(ellipse 82% 58% at 50% 70%, oklch(0.74 0.04 225 / 12%), transparent 100%);
+  }
+
+  .character-stage::after {
+    background: radial-gradient(ellipse 82% 58% at 50% 70%, var(--scene-glow), transparent 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
