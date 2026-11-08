@@ -21,6 +21,18 @@ BASE_MODEL = "indolem/indobert-base-uncased"
 OUTPUT_DIR = Path("./model_deteksi_penipuan")
 MAX_LENGTH = 128
 LABEL_NAMES = {0: "normal", 1: "penipuan"}
+FALLBACK_NORMAL_TEXTS = [
+    "Halo, saya ingin menanyakan jadwal kegiatan hari ini di kantor.",
+    "Terima kasih atas informasinya, saya akan segera mengecek email saya.",
+    "Bisa bantu saya cek status pengiriman paket yang sudah saya pesan?",
+    "Saya sudah menerima invoice dan akan membayar sesuai nominal yang tertera.",
+    "Selamat pagi, apakah ada jadwal rapat hari ini yang bisa saya ikuti?",
+    "Mohon maaf, saya sedang tidak bisa datang ke kantor hari ini karena sakit.",
+    "Saya ingin memastikan data diri saya sudah benar di sistem aplikasi.",
+    "Apakah Anda bisa mengirimkan dokumen laporan terbaru untuk saya review?",
+    "Terima kasih, saya akan membalas pesan Anda setelah makan siang nanti.",
+    "Kami akan lanjutkan kerja sama setelah kontrak resmi ditandatangani.",
+]
 
 
 class ChatDataset(Dataset):
@@ -70,11 +82,22 @@ def load_and_validate_data(csv_path: Path):
         )
 
     data = pd.read_csv(csv_path)
-    # Dataset yang ada memakai kolom ``teks`` dan label berupa nama kelas.
-    # Tetap dukung format ``text`` dan label numerik agar skrip juga bisa
-    # dipakai dengan dataset lama.
     text_column = "teks" if "teks" in data.columns else "text"
-    required_columns = {text_column, "label"}
+    label_column = (
+        "label"
+        if "label" in data.columns
+        else "spam_ham_label"
+        if "spam_ham_label" in data.columns
+        else None
+    )
+
+    if label_column is None:
+        raise ValueError(
+            "Kolom label tidak ditemukan. Gunakan salah satu nama berikut: "
+            "'label' atau 'spam_ham_label'."
+        )
+
+    required_columns = {text_column, label_column}
     missing_columns = required_columns.difference(data.columns)
     if missing_columns:
         raise ValueError(
@@ -82,21 +105,46 @@ def load_and_validate_data(csv_path: Path):
         )
     if data.empty:
         raise ValueError("Dataset CSV tidak memiliki baris data.")
-    if data[[text_column, "label"]].isnull().any().any():
-        raise ValueError(f"Kolom '{text_column}' dan 'label' tidak boleh kosong.")
+    if data[[text_column, label_column]].isnull().any().any():
+        raise ValueError(
+            f"Kolom '{text_column}' dan '{label_column}' tidak boleh kosong."
+        )
 
-    raw_labels = data["label"].astype(str).str.strip().str.lower()
-    label_map = {"normal": 0, "penipuan": 1, "0": 0, "1": 1}
+    raw_labels = data[label_column].astype(str).str.strip().str.lower()
+    label_map = {
+        "normal": 0,
+        "ham": 0,
+        "penipuan": 1,
+        "spam": 1,
+        "0": 0,
+        "1": 1,
+    }
     unknown_labels = sorted(set(raw_labels) - set(label_map))
     if unknown_labels:
         raise ValueError(
-            "Label harus berupa normal/penipuan atau angka 0/1; "
+            "Label harus berupa normal/penipuan, ham/spam, atau angka 0/1; "
             f"ditemukan: {', '.join(unknown_labels)}"
         )
     labels = raw_labels.map(label_map).astype(int)
 
     if not labels.isin([0, 1]).all():
-        raise ValueError("Label hanya boleh 0 (normal) atau 1 (penipuan).")
+        raise ValueError("Label hanya boleh 0 (normal/ham) atau 1 (penipuan/spam).")
+
+    if labels.nunique() < 2:
+        print(
+            "Peringatan: dataset hanya memiliki satu kelas. "
+            "Untuk menjalankan training awal, program akan menambahkan contoh normal "
+            "yang aman dari fallback internal."
+        )
+        fallback_df = pd.DataFrame(
+            {
+                text_column: FALLBACK_NORMAL_TEXTS,
+                label_column: ["normal"] * len(FALLBACK_NORMAL_TEXTS),
+            }
+        )
+        data = pd.concat([data, fallback_df], ignore_index=True)
+        raw_labels = data[label_column].astype(str).str.strip().str.lower()
+        labels = raw_labels.map(label_map).astype(int)
 
     texts = data[text_column].astype(str).tolist()
     return texts, labels.tolist()
