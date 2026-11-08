@@ -6,7 +6,7 @@ const scripts = [
   "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js",
   "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js",
   "https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js",
-  "/static/deteksi/live2d.js",
+  "/static/deteksi/live2d.js?v=3",
 ];
 
 let live2dScriptsPromise;
@@ -59,7 +59,7 @@ export default function Live2DPanel({ greeting }) {
   }, []);
 
   return (
-    <section aria-label="Karakter Haru" className="character-stage relative min-h-0 w-full flex-1">
+    <section aria-label="Karakter Cynthia" className="character-stage relative min-h-0 w-full flex-1">
       <div
         aria-label="Area karakter Live2D"
         className="absolute inset-0 overflow-hidden"
@@ -75,10 +75,10 @@ export default function Live2DPanel({ greeting }) {
         )}
         <div
           className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
-          data-default-model-url="/static/deteksi/live2d/haru.zip"
+          data-default-model-url="/static/deteksi/live2d/cynthia.zip?v=1"
           id="live2d-empty"
         >
-          <p className="font-display text-lg font-semibold text-ink">Haru</p>
+          <p className="font-display text-lg font-semibold text-ink">Cynthia</p>
           <p className="mt-1 text-sm text-muted" id="live2d-status" role="status" aria-live="polite">
             {loadingMessage}
           </p>

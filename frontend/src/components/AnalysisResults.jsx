@@ -36,11 +36,11 @@ export function ResultSummary({ result }) {
           ? "Waspadai permintaan uang, tautan, data pribadi, atau kode OTP."
           : "Tetap periksa konteks dan identitas pengirim secara mandiri."}
       </p>
-      <div className="mt-4 flex items-end justify-between border-t border-line pt-3">
+      <div className="mt-4 flex items-end justify-between border-t border-line pt-3" data-speech-ignore>
         <span className="text-xs font-bold tracking-widest text-muted">SKOR MODEL</span>
         <strong className="font-display text-2xl text-ink">{Number(result.confidence_percent).toFixed(1)}%</strong>
       </div>
-      <p className="mt-3 text-sm leading-6 text-muted">
+      <p className="mt-3 text-sm leading-6 text-muted" data-speech-ignore>
         Skor ini petunjuk awal, bukan jaminan keamanan.
       </p>
     </Card>

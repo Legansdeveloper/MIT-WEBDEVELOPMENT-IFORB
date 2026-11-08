@@ -210,6 +210,7 @@
     if (!results) return "";
     const spokenResults = results.cloneNode(true);
     spokenResults.querySelectorAll("button").forEach((button) => button.remove());
+    spokenResults.querySelectorAll("[data-speech-ignore]").forEach((element) => element.remove());
     return spokenResults.textContent.replace(/\s+/g, " ").trim();
   }
 
@@ -330,7 +331,7 @@
       }
     } catch (error) {
       console.error("Live2D model load failed", error);
-      setStatus("Karakter Haru gagal dimuat. Muat ulang halaman untuk mencoba kembali.", true);
+      setStatus("Karakter Cynthia gagal dimuat. Muat ulang halaman untuk mencoba kembali.", true);
     } finally {
       isLoading = false;
       emptyState.classList.remove("is-loading");
@@ -341,11 +342,11 @@
     const modelUrl = emptyState.dataset.defaultModelUrl;
     if (!modelUrl) return;
 
-    setStatus("Memuat karakter Haru…");
+    setStatus("Memuat karakter Cynthia…");
     try {
       const response = await fetch(modelUrl);
       if (!response.ok) {
-        throw new Error(`Model Haru gagal dimuat (HTTP ${response.status}).`);
+        throw new Error(`Model Cynthia gagal dimuat (HTTP ${response.status}).`);
       }
       const modelBlob = await response.blob();
       const modelFile = new File([modelBlob], "haru-live2d.zip", {
@@ -354,7 +355,7 @@
       loadModel(modelFile);
     } catch (error) {
       console.error("Default Live2D model load failed", error);
-      setStatus("Karakter Haru belum bisa dimuat. Periksa koneksi lalu muat ulang halaman.", true);
+      setStatus("Karakter Cynthia belum bisa dimuat. Periksa koneksi lalu muat ulang halaman.", true);
     }
   }
 
