@@ -59,12 +59,13 @@ class URLOnlyDetectionTests(SimpleTestCase):
         self.assertIn("Jangan selalu memakai daftar atau poin", messages[0]["content"])
         self.assertIn("belum menjamin tautan aman", messages[0]["content"])
         self.assertIn("pelajaran untuk memeriksa tautan lain", messages[0]["content"].lower())
-        self.assertIn("jenis/modus penipuan", messages[0]["content"].lower())
-        self.assertIn("cara menanggulangi", messages[0]["content"].lower())
+        self.assertIn("kenali indikator ancaman", messages[0]["content"].lower())
+        self.assertIn("langkah aman yang konkret", messages[0]["content"].lower())
+        self.assertIn("jangan mengklaim sudah melakukan tindakan", messages[0]["content"].lower())
         self.assertIn("Maksimal 200 kata total", messages[0]["content"])
         self.assertIn("SOCIAL_ENGINEERING", messages[1]["content"])
         self.assertIn("Shortened URL.", messages[1]["content"])
-        self.assertIn("jangan menebak modus", messages[1]["content"])
+        self.assertIn("menebak modus jika bukti tidak cukup", messages[1]["content"])
 
     def test_message_groq_prompt_teaches_reasoning(self):
         completion = SimpleNamespace(
@@ -80,9 +81,11 @@ class URLOnlyDetectionTests(SimpleTestCase):
         self.assertIn("seolah sedang ngobrol langsung dengan teman", messages[0]["content"])
         self.assertIn("Jangan selalu memakai daftar atau poin", messages[0]["content"])
         self.assertIn("kutip bukti spesifik", messages[0]["content"])
-        self.assertIn("jenis/modus", messages[0]["content"])
-        self.assertIn("cara menanggulanginya", messages[0]["content"])
-        self.assertIn("sebutkan modus yang didukung bukti", messages[1]["content"])
+        self.assertIn("tujuan atau modus", messages[0]["content"])
+        self.assertIn("kenali indikator ancaman", messages[0]["content"].lower())
+        self.assertIn("langkah aman yang konkret", messages[0]["content"].lower())
+        self.assertIn("langkah aman yang dapat dilakukan pengguna", messages[1]["content"].lower())
+        self.assertIn("tujuan/modus yang didukung bukti", messages[1]["content"].lower())
         self.assertIn("Maksimal 200 kata total", messages[0]["content"])
 
     def test_groq_explanation_is_capped_at_200_words(self):

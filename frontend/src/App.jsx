@@ -189,8 +189,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className="relative mx-auto flex w-full max-w-[1500px] min-h-0 flex-1 gap-6 py-2 sm:py-4">
-        <section className="flex min-w-0 flex-1 flex-col items-center">
+      <main className="analysis-layout analysis-scroll mx-auto grid w-full max-w-[1500px] min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(30dvh,auto)_auto_auto] content-start gap-3 overflow-y-auto overscroll-contain py-2 sm:gap-4 sm:py-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)] lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-x-6 lg:gap-y-3 lg:overflow-hidden">
+        <section className="row-start-1 flex min-h-[30dvh] min-w-0 flex-col items-center sm:min-h-[32dvh] lg:col-start-1 lg:row-start-1 lg:min-h-0">
           <Live2DPanel
             greeting={
               characterGreeting || (!hasSubmitted ? "Hai, aku Cynthia. Kirim pesan yang ingin kamu periksa, ya." : "")
@@ -201,7 +201,7 @@ export default function App() {
         <aside
           aria-label="Hasil pemeriksaan"
           className={hasAnalysisPanel && resultsOpen
-            ? "analysis-panel absolute right-0 top-2 z-20 flex max-h-[52%] min-h-0 w-[min(94%,440px)] flex-col overflow-hidden rounded-xl border border-line bg-surface-raised/95 shadow-xl shadow-ink/15 backdrop-blur-md sm:top-4 lg:static lg:top-auto lg:max-h-full lg:w-[min(36%,380px)] lg:shrink-0 lg:rounded-none lg:border-0 lg:border-l lg:bg-transparent lg:pl-4 lg:shadow-none lg:backdrop-blur-none"
+            ? "analysis-panel row-start-3 mt-2 flex min-h-0 w-full flex-col overflow-hidden rounded-xl border border-line bg-surface-raised/95 shadow-xl shadow-ink/15 backdrop-blur-md lg:col-start-2 lg:row-start-1 lg:mt-0 lg:max-h-full lg:rounded-none lg:border-0 lg:border-l lg:bg-transparent lg:pl-4 lg:shadow-none lg:backdrop-blur-none"
             : "hidden"}
         >
             <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-line px-3 sm:px-4 lg:pl-4">
@@ -245,9 +245,20 @@ export default function App() {
               )}
             </div>
         </aside>
+        <div className="row-start-2 min-w-0 lg:col-span-2 lg:row-start-2">
+          <AnalysisForm
+            busy={busy}
+            file={file}
+            hasResult={Boolean(result)}
+            onFileChange={selectPdf}
+            onSubmit={submitAnalysis}
+            onTextChange={setText}
+            text={text}
+          />
+        </div>
         {hasAnalysisPanel && !resultsOpen && (
           <button
-            className="absolute right-0 top-2 z-20 rounded-full border border-line bg-surface-raised px-4 py-2 text-sm font-medium text-ink shadow-lg shadow-ink/10 transition hover:bg-brand-soft sm:top-4"
+            className="fixed bottom-4 right-3 z-20 rounded-full border border-line bg-surface-raised px-4 py-2 text-sm font-medium text-ink shadow-lg shadow-ink/10 transition hover:bg-brand-soft sm:right-6"
             aria-label="Tampilkan hasil pemeriksaan"
             onClick={() => setResultsOpen(true)}
             type="button"
@@ -256,16 +267,6 @@ export default function App() {
           </button>
         )}
       </main>
-
-      <AnalysisForm
-        busy={busy}
-        file={file}
-        hasResult={Boolean(result)}
-        onFileChange={selectPdf}
-        onSubmit={submitAnalysis}
-        onTextChange={setText}
-        text={text}
-      />
     </div>
   );
 }

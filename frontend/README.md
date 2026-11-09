@@ -8,10 +8,14 @@ running npm commands.
 
 ## Local development
 
+Copy the project-root `.env.example` to `.env` and set the service keys you use.
+`MODEL_DIR` can point to the model directory; relative paths are resolved from
+the project root. The local `.env` is ignored by Git and should not be copied
+from a development machine to production as-is.
+
 1. Start Django from the repository root:
 
    ```powershell
-   $env:DJANGO_DEBUG = "true"
    .\env\Scripts\python.exe manage.py runserver
    ```
 
@@ -43,6 +47,9 @@ the comma-separated `DJANGO_ALLOWED_HOSTS` environment variables. `DEBUG`
 defaults to `False`, and Django refuses to start without `DJANGO_SECRET_KEY`
 unless local debug mode is explicitly enabled. Generate a unique secret for the
 deployment; do not reuse the development environment's key.
+
+Set `MODEL_DIR` to the model directory on the VPS and configure the optional
+Groq, Google Safe Browsing, and ElevenLabs keys only if those features are used.
 
 The bundled Haru model has visible credit in the UI and is documented in
 `../deteksi/static/deteksi/live2d/README.md`. Review and accept the applicable

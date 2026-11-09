@@ -3,9 +3,11 @@ from pathlib import Path
 import secrets
 
 from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").strip().lower() in {"1", "true", "yes"}
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 if not SECRET_KEY:

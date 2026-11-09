@@ -55,6 +55,10 @@ describe("Cynthia", () => {
     expect(document.documentElement).toHaveAttribute("data-scene", "danger");
     expect(screen.queryByText(/Hai, aku Cynthia/)).not.toBeInTheDocument();
     expect(container.firstChild).toHaveClass("h-dvh", "overflow-hidden");
+    const layout = screen.getByRole("main");
+    expect(layout).toHaveClass("grid-cols-1", "overflow-y-auto", "lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]");
+    expect(screen.getByLabelText("Hasil pemeriksaan")).toHaveClass("row-start-3", "lg:col-start-2");
+    expect(screen.getByLabelText("Isi pesan").closest("div")).toHaveClass("row-start-2");
     expect(screen.getByRole("complementary", { name: "Hasil pemeriksaan" })
       .querySelector("#analysis-results")).toHaveClass("overflow-y-auto");
     fireEvent.click(screen.getByRole("button", { name: "Sembunyikan hasil pemeriksaan" }));
