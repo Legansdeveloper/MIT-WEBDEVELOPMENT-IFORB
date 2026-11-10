@@ -90,18 +90,8 @@ ditafsirkan dengan hati-hati dan diverifikasi secara mandiri.
 - **Live2D Cubism Core for Web:** runtime karakter yang dimuat dari server
   resmi Live2D. Penggunaan tunduk pada
   [perjanjian lisensi Cubism SDK](https://www.live2d.com/en/sdk/download/web/).
-- **PixiJS** dan **pixi-live2d-display:** pustaka untuk menampilkan model
-  karakter di browser; keduanya menggunakan lisensi MIT. Sumber:
-  [PixiJS](https://github.com/pixijs/pixijs),
-  [lisensi PixiJS](https://github.com/pixijs/pixijs/blob/dev/LICENSE),
-  [pixi-live2d-display](https://github.com/guansss/pixi-live2d-display), dan
-  [lisensinya](https://github.com/guansss/pixi-live2d-display/blob/master/LICENSE).
-- **JSZip:** pustaka untuk membaca paket model; tersedia di bawah lisensi MIT
-  atau GPL-3.0. Sumber dan ketentuan:
-  [repositori JSZip](https://github.com/Stuk/jszip) dan
-  [lisensi JSZip](https://github.com/Stuk/jszip/blob/main/LICENSE.markdown).
-- **Font DM Sans dan Manrope:** dimuat melalui Google Fonts dan dilisensikan
-  di bawah SIL Open Font License (OFL). Sumber:
+
+ 
   [DM Sans](https://fonts.google.com/specimen/DM+Sans),
   [Manrope](https://fonts.google.com/specimen/Manrope), dan
   [informasi OFL](https://openfontlicense.org/).
