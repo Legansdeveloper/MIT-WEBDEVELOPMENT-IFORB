@@ -191,7 +191,7 @@ export default function App() {
       </header>
 
       <main className={`analysis-layout analysis-scroll mx-auto grid w-full max-w-[1500px] min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(30dvh,auto)_auto_auto] content-start gap-3 overflow-x-hidden overflow-y-auto overscroll-contain py-2 sm:gap-4 sm:py-4 lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-x-6 lg:gap-y-3 lg:overflow-hidden ${showAnalysisPanel ? "lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]" : "lg:grid-cols-1"}`}>
-        <section className="row-start-1 flex min-h-[30dvh] min-w-0 flex-col items-center sm:min-h-[32dvh] lg:col-start-1 lg:row-start-1 lg:min-h-0">
+        <section className={`row-start-1 flex min-h-[30dvh] min-w-0 flex-col items-center sm:min-h-[32dvh] lg:row-start-1 lg:min-h-0 ${showAnalysisPanel ? "lg:col-span-2" : "lg:col-start-1"}`}>
           <Live2DPanel
             greeting={
               characterGreeting || (!hasSubmitted ? "Hai, aku Cynthia. Kirim pesan yang ingin kamu periksa, ya." : "")
@@ -202,7 +202,7 @@ export default function App() {
         <aside
           aria-label="Hasil pemeriksaan"
           className={showAnalysisPanel
-            ? "analysis-panel row-start-3 mt-2 flex min-h-0 w-full flex-col overflow-hidden rounded-xl border border-line bg-surface-raised/95 shadow-xl shadow-ink/15 backdrop-blur-md lg:col-start-2 lg:row-start-1 lg:mt-0 lg:max-h-full lg:rounded-none lg:border-0 lg:border-l lg:bg-transparent lg:pl-4 lg:shadow-none lg:backdrop-blur-none"
+            ? "analysis-panel row-start-3 mt-2 flex min-h-0 w-full flex-col overflow-hidden rounded-xl border border-line bg-surface-raised/95 shadow-xl shadow-ink/15 backdrop-blur-md lg:z-20 lg:col-start-2 lg:row-start-1 lg:mt-0 lg:max-h-full lg:rounded-none lg:border-0 lg:border-l lg:bg-transparent lg:pl-4 lg:shadow-none lg:backdrop-blur-none"
             : "hidden"}
         >
             <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-line px-3 sm:px-4 lg:pl-4">
