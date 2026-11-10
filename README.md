@@ -97,5 +97,3 @@ ditafsirkan dengan hati-hati dan diverifikasi secara mandiri.
   [informasi OFL](https://openfontlicense.org/).
 
 Lisensi aset dan pustaka pihak ketiga tetap menjadi hak pemilik masing-masing.
-Pastikan membaca ketentuan resmi terbaru sebelum menyalin atau mendistribusikan
-aset secara terpisah dari aplikasi.
