@@ -41,6 +41,8 @@ describe("Cynthia", () => {
     const { container } = render(<App />);
     const layout = screen.getByRole("main");
     expect(layout).toHaveClass("lg:grid-cols-1");
+    const formContainer = screen.getByLabelText("Isi pesan").closest("div");
+    expect(formContainer).toHaveClass("lg:col-span-1");
     fireEvent.change(screen.getByLabelText("Isi pesan"), {
       target: { value: "Segera kirim kode OTP Anda" },
     });
@@ -60,12 +62,14 @@ describe("Cynthia", () => {
     expect(layout).toHaveClass("grid-cols-1", "overflow-y-auto", "lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]");
     expect(screen.getByLabelText("Hasil pemeriksaan")).toHaveClass("row-start-3", "lg:col-start-2");
     expect(screen.getByLabelText("Isi pesan").closest("div")).toHaveClass("row-start-2");
+    expect(formContainer).toHaveClass("lg:col-span-2");
     expect(screen.getByRole("complementary", { name: "Hasil pemeriksaan" })
       .querySelector("#analysis-results")).toHaveClass("overflow-y-auto");
     fireEvent.click(screen.getByRole("button", { name: "Sembunyikan hasil pemeriksaan" }));
     expect(screen.getByLabelText("Hasil pemeriksaan")).toHaveClass("hidden");
     expect(screen.getByLabelText("Hasil pemeriksaan")).toHaveTextContent("Jangan kirim kode OTP");
     expect(layout).toHaveClass("lg:grid-cols-1");
+    expect(formContainer).toHaveClass("lg:col-span-1");
     fireEvent.click(screen.getByRole("button", { name: "Tampilkan hasil pemeriksaan" }));
     expect(screen.getByRole("complementary", { name: "Hasil pemeriksaan" })).toBeInTheDocument();
     expect(layout).toHaveClass("lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]");

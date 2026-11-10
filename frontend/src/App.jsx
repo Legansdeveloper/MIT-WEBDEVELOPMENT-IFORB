@@ -246,7 +246,7 @@ export default function App() {
               )}
             </div>
         </aside>
-        <div className="row-start-2 min-w-0 lg:col-span-2 lg:row-start-2">
+        <div className={`row-start-2 min-w-0 lg:row-start-2 ${showAnalysisPanel ? "lg:col-span-2" : "lg:col-span-1"}`}>
           <AnalysisForm
             busy={busy}
             file={file}
