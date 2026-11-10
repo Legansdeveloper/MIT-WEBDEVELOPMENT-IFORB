@@ -72,7 +72,7 @@ Ketiga tahap ini menjelaskan cara menggunakan hasil Cynthia dengan bijak:
 - **ElevenLabs `eleven_multilingual_v2`:** mengubah hasil menjadi suara saat
   fitur **Bacakan hasil** tersedia.
 - **Karakter Haru dari Live2D:** karakter animasi yang menemani tampilan
-  Cynthia. Haru bukan model yang memeriksa atau mengklasifikasikan pesan.
+  Cynthia.
 
 Beberapa pemeriksaan dan penjelasan bergantung pada layanan yang dapat
 diaktifkan atau tersedia. Jika layanan tidak tersedia, hasil utama tetap perlu
