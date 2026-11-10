@@ -1,4 +1,4 @@
-# Cynthia — Teman Memeriksa Pesan Mencurigakan
+# Cynthia — Cyber intellegence Assistant 
 
 Cynthia membantu pengguna mengenali tanda-tanda penipuan dalam pesan dan
 tautan. Pengguna dapat menempelkan isi chat atau memilih dokumen PDF untuk
