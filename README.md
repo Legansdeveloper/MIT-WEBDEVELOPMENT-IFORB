@@ -1,7 +1,7 @@
 # Cynthia — Cyber intellegence Assistant 
 
 Cynthia membantu pengguna mengenali tanda-tanda penipuan dalam pesan dan
-tautan. Pengguna dapat menempelkan isi chat atau memilih dokumen PDF untuk
+tautan. Pengguna dapat menempelkan isi chat, tautan atau memilih dokumen PDF untuk
 diperiksa. Hasilnya berisi klasifikasi awal, pemeriksaan tautan, dan penjelasan
 agar pengguna dapat mempertimbangkan langkah berikutnya.
 
