@@ -78,6 +78,43 @@ Beberapa pemeriksaan dan penjelasan bergantung pada layanan yang dapat
 diaktifkan atau tersedia. Jika layanan tidak tersedia, hasil utama tetap perlu
 ditafsirkan dengan hati-hati dan diverifikasi secara mandiri.
 
+## Menjalankan Cynthia secara lokal
+
+Untuk menjalankan Cynthia di Windows, siapkan Python dan Node.js 26.13.0 atau
+versi yang lebih baru dalam jalur Node 26 LTS. Buka PowerShell di folder
+proyek, lalu siapkan backend:
+
+```powershell
+py -m venv env
+.\env\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+```
+
+Jika PowerShell tidak mengizinkan aktivasi environment, jalankan perintah
+Python dengan path `.\env\Scripts\python.exe` tanpa aktivasi. Buka `.env` dan
+pastikan `DJANGO_DEBUG=true` untuk pengembangan lokal. Kunci Groq, Google Safe
+Browsing, dan ElevenLabs bersifat opsional; fitur terkait memerlukan kunci
+layanan masing-masing. Jangan membagikan file `.env`.
+
+Di terminal PowerShell pertama, jalankan backend:
+
+```powershell
+python manage.py runserver
+```
+
+Buka terminal PowerShell kedua untuk menjalankan frontend:
+
+```powershell
+Set-Location frontend
+npm ci
+npm run dev
+```
+
+Buka <http://127.0.0.1:5173> di browser. Biarkan kedua terminal tetap berjalan
+selama aplikasi digunakan. Untuk petunjuk build frontend dan deployment, lihat
+[panduan frontend](frontend/README.md).
+
 ## Kredit aset dan lisensi
 
 - **Model karakter Haru (receptionist sample):** ilustrasi dan pemodelan oleh
